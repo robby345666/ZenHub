@@ -1,0 +1,1533 @@
+-- Steal a Brainrot - Server Browser v7
+-- Rare list checkboxes + ESP tab (box, line, label per brainrot in workspace)
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local PlaceId = game.PlaceId
+
+local targetValue = nil
+local scanning = false
+
+-- =====================
+--   RARE BRAINROT LIST
+--   Each entry has:
+--   name, emoji (for icon fallback)
+--   enabled = true means auto-join ON
+-- =====================
+
+local RARE_LIST = {
+    -- Legendary / Machine
+    {name="Griffin",                        enabled=true},
+    {name="Celestial Pegasus",              enabled=true},
+    {name="Nacho Spyder",                   enabled=true},
+    {name="Hydra Dragon Cannelloni",        enabled=true},
+    {name="Dragon Gingerini",               enabled=true},
+    {name="Dragon Cannelloni",              enabled=true},
+    {name="Cigno Fulgoro",                  enabled=true},
+    {name="Tralaledon",                     enabled=true},
+    {name="Eviledon",                       enabled=true},
+    {name="Orcaledon",                      enabled=true},
+    {name="Gobblino Uniciclino",            enabled=true},
+    {name="Swaggy Bros",                    enabled=true},
+    {name="W or L",                         enabled=true},
+    {name="Love Love Bear",                 enabled=true},
+    {name="Rosey and Teddy",                enabled=true},
+    {name="DJ Panda",                       enabled=true},
+    {name="Cooki and Milki",                enabled=true},
+    {name="Popcuru and Fizzuru",            enabled=true},
+    {name="Bacuru and Egguru",              enabled=true},
+    {name="Tirilikalika Tirilikalako",      enabled=true},
+    {name="Signore Carapace",               enabled=true},
+    {name="Elefanto Frigo",                 enabled=true},
+    {name="Fragrama and Chocrama",          enabled=true},
+    {name="Fragola La La La",               enabled=true},
+    {name="Paradiso Axolottino",            enabled=true},
+    {name="Serafinna Medusella",            enabled=true},
+    {name="Burguro And Fryuro",             enabled=true},
+    {name="Capitano Moby",                  enabled=true},
+    {name="Cerberus",                       enabled=true},
+    {name="Vulturino Skeletono",            enabled=true},
+    {name="Boatito Auratito",               enabled=true},
+    {name="Guerriro Digitale",              enabled=true},
+    {name="Agarrini la Palini",             enabled=true},
+    -- Combinasions
+    {name="La Jolly Grande",                enabled=true},
+    {name="La Romantic Grande",             enabled=true},
+    {name="La Spooky Grande",               enabled=true},
+    {name="La Extinct Grande",              enabled=true},
+    {name="La Taco Combinasion",            enabled=true},
+    {name="La Food Combinasion",            enabled=true},
+    {name="La Supreme Combinasion",         enabled=true},
+    {name="La Secret Combinasion",          enabled=true},
+    {name="La Grande Combinasion",          enabled=true},
+    {name="La Karkerkar Combinasion",       enabled=true},
+    {name="La Sahur Combinasion",           enabled=true},
+    {name="La Casa Boo",                    enabled=true},
+    {name="La Ginger Sekolah",              enabled=true},
+    {name="La Vacca Jacko Linterino",       enabled=true},
+    -- Group brainrots
+    {name="Los Matteos",                    enabled=true},
+    {name="Los Tortus",                     enabled=true},
+    {name="Los Spyderinis",                 enabled=true},
+    {name="Los Cucarachas",                 enabled=true},
+    {name="Los Karkeritos",                 enabled=true},
+    {name="Los Jobcitos",                   enabled=true},
+    {name="Los Tralaleritos",               enabled=true},
+    {name="Las Tralaleritas",               enabled=true},
+    {name="Las Vaquitas Saturnitas",        enabled=true},
+    {name="Las Sis",                        enabled=true},
+    {name="Los Sweethearts",                enabled=true},
+    {name="Los Planitos",                   enabled=true},
+    {name="Los Hotspotsitos",               enabled=true},
+    {name="Los Spooky Combinasionas",       enabled=true},
+    {name="Los Jolly Combinasionas",        enabled=true},
+    {name="Los Mobilis",                    enabled=true},
+    {name="Los 67",                         enabled=true},
+    {name="Los Candies",                    enabled=true},
+    {name="Los Bros",                       enabled=true},
+    {name="Los 25",                         enabled=true},
+    {name="Los Cupids",                     enabled=true},
+    {name="Los Puggies",                    enabled=true},
+    {name="Los Primos",                     enabled=true},
+    {name="Los Tacoritas",                  enabled=true},
+    {name="Los Sekolahs",                   enabled=true},
+    {name="Los Spaghettis",                 enabled=true},
+    {name="Los Burritos",                   enabled=true},
+    {name="Los Quesadillas",                enabled=true},
+    {name="Los Amigos",                     enabled=true},
+    {name="Los Nooo My Hotspotsitos",       enabled=true},
+    {name="Los Combinasionas",              enabled=true},
+    {name="Los Chicleteiras",               enabled=true},
+    {name="Los Mi Gatitos",                 enabled=true},
+    -- Event / Ritual
+    {name="Extinct Tralalero",              enabled=true},
+    {name="Zombie Tralala",                 enabled=true},
+    {name="Yess my examine",               enabled=true},
+    {name="Extinct Matteo",                 enabled=true},
+    {name="Dul Dul Dul",                    enabled=true},
+    {name="Rocco Disco",                    enabled=true},
+    {name="Reindeer Tralala",               enabled=true},
+    {name="Pumpkini Spyderini",             enabled=true},
+    {name="Frankentteo",                    enabled=true},
+    {name="Santteo",                        enabled=true},
+    {name="Triplito Tralaleritos",          enabled=true},
+    {name="Trickolino",                     enabled=true},
+    {name="Giftini Spyderini",              enabled=true},
+    {name="Love Love Love Sahur",           enabled=true},
+    {name="1x1x1x1",                       enabled=true},
+    {name="Please my Present",              enabled=true},
+    {name="Cuadramat and Pakrahmatmamat",   enabled=true},
+    {name="Coffin Tung Tung Tung Sahur",    enabled=true},
+    {name="Tung Tung Tung Sahur",           enabled=true},
+    {name="Bunnyman",                       enabled=true},
+    {name="Nooo My Hotspot",                enabled=true},
+    {name="Noo my examine",                enabled=true},
+    {name="List List List Sahur",           enabled=true},
+    {name="25",                             enabled=true},
+    {name="Pot Hotspot",                    enabled=true},
+    {name="Pirulitoita Bicicleteira",       enabled=true},
+    {name="Santa Hotspot",                  enabled=true},
+    {name="Horegini Boom",                  enabled=true},
+    {name="Naughty Naughty",               enabled=true},
+    {name="Telemorte",                      enabled=true},
+    {name="Quesadilla Crocodila",           enabled=true},
+    {name="Bunito Bunito Spinito",          enabled=true},
+    {name="Pot Pumpkin",                    enabled=true},
+    {name="Cupid Cupid Sahur",              enabled=true},
+    {name="Ho Ho Ho Sahur",                 enabled=true},
+    {name="Mi Gatito",                      enabled=true},
+    {name="Quesadillo Vampiro",             enabled=true},
+    {name="Brunito Marsito",                enabled=true},
+    {name="Cupid Hotspot",                  enabled=true},
+    {name="Burrito Bandito",                enabled=true},
+    {name="Noo my Candy",                   enabled=true},
+    {name="Arcadopus",                      enabled=true},
+    {name="Rang Ring Bus",                  enabled=true},
+    {name="Noo my Present",                 enabled=true},
+    {name="Guest 666",                      enabled=true},
+    {name="67",                             enabled=true},
+    {name="Donkeyturbo Express",            enabled=true},
+    {name="Mariachi Corazoni",              enabled=true},
+    {name="Tacorillo Crocodillo",           enabled=true},
+    {name="Swag Soda",                      enabled=true},
+    {name="Noo my Heart",                   enabled=true},
+    {name="Chimnino",                       enabled=true},
+    {name="Chicleteira Noelteira",          enabled=true},
+    {name="Fishino Clownino",               enabled=true},
+    {name="Tacorita Bicicleta",             enabled=true},
+    {name="Spinny Hammy",                   enabled=true},
+    {name="Chicleteira Cupideira",          enabled=true},
+    {name="Cigno Fulgoro",                  enabled=true},
+    {name="Celularcini Viciosini",          enabled=true},
+    {name="Tuff Toucan",                    enabled=true},
+    {name="Esok Sekolah",                   enabled=true},
+    {name="Lovin Rose",                     enabled=true},
+    {name="Orcaledon",                      enabled=true},
+    {name="Jolly Jolly Sahur",              enabled=true},
+    {name="Rosetti Tualetti",               enabled=true},
+    {name="Antonio",                        enabled=true},
+    {name="Spaghetti Tualetti",             enabled=true},
+    {name="Festive 67",                     enabled=true},
+    {name="Sammyni Fattini",                enabled=true},
+    {name="Ginger Gerat",                   enabled=true},
+    {name="Spooky and Pumpky",              enabled=true},
+    {name="La Casa Boo",                    enabled=true},
+    {name="Reinito Sleighito",              enabled=true},
+    {name="Ketupat Bros",                   enabled=true},
+    {name="Celestial Pegasus",              enabled=true},
+    {name="Love Love Bear",                 enabled=true},
+    {name="Dragon Gingerini",               enabled=true},
+    {name="Chipso and Queso",               enabled=true},
+    {name="Chillin Chili",                  enabled=true},
+    {name="Money Money Reindeer",           enabled=true},
+    {name="Mieteteira Bicicleteira",        enabled=true},
+    {name="Nuclearo Dinossauro",            enabled=true},
+    {name="Money Money Puggy",              enabled=true},
+    {name="Tang Tang Keletang",             enabled=true},
+    {name="Ketupat Kepat",                  enabled=true},
+    {name="Tictac Sahur",                   enabled=true},
+    {name="Ketchuru and Musturu",           enabled=true},
+    {name="Lavadorito Spinito",             enabled=true},
+    {name="Garama and Madundung",           enabled=true},
+    {name="Ventoliero Pavonero",            enabled=true},
+    {name="Bisonte Giuppitere",             enabled=true},
+    {name="Sammyni Spyderini",              enabled=true},
+    {name="Blackhole Goat",                 enabled=true},
+    {name="Jackorilla",                     enabled=true},
+    {name="Chachechi",                      enabled=true},
+    {name="Trenostruzzo Turbo 4000",        enabled=true},
+    {name="La Cucaracha",                   enabled=true},
+    {name="Fishboard",                      enabled=true},
+    {name="Perrito Burrito",                enabled=true},
+    {name="Karker Sahur",                   enabled=true},
+    {name="Secret Lucky Block",             enabled=true},
+    {name="GOAT",                           enabled=true},
+    {name="Graipuss Medussi",               enabled=true},
+    {name="Chicleteira Bicicleteira",       enabled=true},
+    {name="Chicleteirina Bicicleteirina",   enabled=true},
+}
+
+-- Build enabled lookup (updates live when checkboxes toggled)
+local function BuildInstantSet()
+    local set = {}
+    for _, entry in ipairs(RARE_LIST) do
+        if entry.enabled then
+            set[entry.name:lower()] = true
+        end
+    end
+    return set
+end
+
+local instantSet = BuildInstantSet()
+
+local function IsInstantJoin(name)
+    if not name then return false end
+    local nl = name:lower():gsub("^%s+",""):gsub("%s+$","")
+    if instantSet[nl] then return true end
+    for key in pairs(instantSet) do
+        if nl:find(key, 1, true) or key:find(nl, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Wiki images lookup
+local BRAINROT_IMAGES = {
+    ["griffin"]                 = "https://static.wikia.nocookie.net/stealabr/images/f/f8/Griffin.png/revision/latest/scale-to-width-down/150?cb=20260308110336",
+    ["celestial pegasus"]       = "https://static.wikia.nocookie.net/stealabr/images/c/ce/Celestial_Pegasus.png/revision/latest/scale-to-width-down/150?cb=20260301002910",
+    ["nacho spyder"]            = "https://static.wikia.nocookie.net/stealabr/images/3/36/Nacho_Spyder.png/revision/latest/scale-to-width-down/150?cb=20260308105833",
+    ["hydra dragon cannelloni"] = "https://static.wikia.nocookie.net/stealabr/images/e/ee/Hydra_Dragon_Cannelloni.png/revision/latest/scale-to-width-down/130?cb=20260207220000",
+    ["dragon gingerini"]        = "https://static.wikia.nocookie.net/stealabr/images/3/3a/DragonGingerini.png/revision/latest/scale-to-width-down/150?cb=20251221003419",
+    ["cigno fulgoro"]           = "https://static.wikia.nocookie.net/stealabr/images/8/87/Birdy.png/revision/latest/scale-to-width-down/135?cb=20260307231251",
+    ["tralaledon"]              = "https://static.wikia.nocookie.net/stealabr/images/7/79/Brr_Brr_Patapem.png/revision/latest/scale-to-width-down/150?cb=20250909171639",
+    ["eviledon"]                = "https://static.wikia.nocookie.net/stealabr/images/7/78/Eviledonn.png/revision/latest/scale-to-width-down/150?cb=20251012023919",
+    ["orcaledon"]               = "https://static.wikia.nocookie.net/stealabr/images/a/a6/Orcaledon.png/revision/latest/scale-to-width-down/150?cb=20251119170121",
+    ["gobblino uniciclino"]     = "https://static.wikia.nocookie.net/stealabr/images/c/c5/Gobblino_Uniciclino.png/revision/latest/scale-to-width-down/140?cb=20251126164826",
+    ["swaggy bros"]             = "https://static.wikia.nocookie.net/stealabr/images/8/85/Swaggy_Bros.png/revision/latest/scale-to-width-down/150?cb=20251223161444",
+    ["w or l"]                  = "https://static.wikia.nocookie.net/stealabr/images/2/28/Win_Or_Lose.png/revision/latest/scale-to-width-down/150?cb=20251123084507",
+    ["love love bear"]          = "https://static.wikia.nocookie.net/stealabr/images/b/bf/Love_Love_Bear.png/revision/latest/scale-to-width-down/124?cb=20260208190306",
+    ["rosey and teddy"]         = "https://static.wikia.nocookie.net/stealabr/images/9/9b/Rosey_and_Teddy.png/revision/latest/scale-to-width-down/150?cb=20260208175726",
+    ["dj panda"]                = "https://static.wikia.nocookie.net/stealabr/images/3/38/DJ_Panda.png/revision/latest/scale-to-width-down/100?cb=20260306024631",
+    ["cooki and milki"]         = "https://static.wikia.nocookie.net/stealabr/images/9/9b/Cooki_and_milki.png/revision/latest/scale-to-width-down/150?cb=20251106165517",
+    ["popcuru and fizzuru"]     = "https://static.wikia.nocookie.net/stealabr/images/a/a9/Popuru_and_Fizzuru.png/revision/latest/scale-to-width-down/120?cb=20260213204324",
+    ["bacuru and egguru"]       = "https://static.wikia.nocookie.net/stealabr/images/b/b5/Bacuru_and_Egguru.png/revision/latest/scale-to-width-down/150?cb=20260207220129",
+    ["la jolly grande"]         = "https://static.wikia.nocookie.net/stealabr/images/5/5f/La_Chrismas_Grande.png/revision/latest/scale-to-width-down/86?cb=20251207091730",
+    ["la romantic grande"]      = "https://static.wikia.nocookie.net/stealabr/images/6/69/La_Romantic_Grande2.png/revision/latest/scale-to-width-down/143?cb=20260221005900",
+    ["la spooky grande"]        = "https://static.wikia.nocookie.net/stealabr/images/5/51/Spooky_Grande.png/revision/latest/scale-to-width-down/113?cb=20251012022949",
+    ["la extinct grande"]       = "https://static.wikia.nocookie.net/stealabr/images/c/cd/La_Extinct_Grande.png/revision/latest/scale-to-width-down/104?cb=20250914041757",
+    ["la taco combinasion"]     = "https://static.wikia.nocookie.net/stealabr/images/8/84/Latacocombi.png/revision/latest/scale-to-width-down/148?cb=20251030015001",
+    ["la food combinasion"]     = "https://static.wikia.nocookie.net/stealabr/images/5/5a/La_Food_Combination.png/revision/latest/scale-to-width-down/96?cb=20260222122456",
+    ["la supreme combinasion"]  = "https://static.wikia.nocookie.net/stealabr/images/5/52/SupremeCombinasion.png/revision/latest/scale-to-width-down/102?cb=20250825130920",
+    ["la secret combinasion"]   = "https://static.wikia.nocookie.net/stealabr/images/f/f2/Lasecretcombinasion.png/revision/latest/scale-to-width-down/113?cb=20251006044448",
+    ["la casa boo"]             = "https://static.wikia.nocookie.net/stealabr/images/d/de/Casa_Booo.png/revision/latest/scale-to-width-down/133?cb=20251220094233",
+    ["la ginger sekolah"]       = "https://static.wikia.nocookie.net/stealabr/images/1/14/Esok_Ginger.png/revision/latest/scale-to-width-down/126?cb=20251219224302",
+    ["los sweethearts"]         = "https://static.wikia.nocookie.net/stealabr/images/e/ed/Los_Sweetheart_s.png/revision/latest/scale-to-width-down/150?cb=20260221000709",
+    ["los planitos"]            = "https://static.wikia.nocookie.net/stealabr/images/8/83/Los_Planitos.png/revision/latest/scale-to-width-down/150?cb=20251123122230",
+    ["los hotspotsitos"]        = "https://static.wikia.nocookie.net/stealabr/images/6/69/Loshotspotsitos.png/revision/latest/scale-to-width-down/140?cb=20251226204212",
+    ["los spooky combinasionas"]= "https://static.wikia.nocookie.net/stealabr/images/8/8a/Lospookycombi.png/revision/latest/scale-to-width-down/150?cb=20251030015823",
+    ["los jolly combinasionas"] = "https://static.wikia.nocookie.net/stealabr/images/7/7b/Los_jollycombos.png/revision/latest/scale-to-width-down/150?cb=20251227115909",
+    ["los mobilis"]             = "https://static.wikia.nocookie.net/stealabr/images/2/27/Losmobil.png/revision/latest/scale-to-width-down/113?cb=20251012023251",
+    ["los 67"]                  = "https://static.wikia.nocookie.net/stealabr/images/d/db/Los-67.png/revision/latest/scale-to-width-down/150?cb=20251103171526",
+    ["los candies"]             = "https://static.wikia.nocookie.net/stealabr/images/f/f9/Candy%21.png/revision/latest/scale-to-width-down/150?cb=20251218124920",
+    ["los bros"]                = "https://static.wikia.nocookie.net/stealabr/images/5/53/BROOOOOOOO.png/revision/latest/scale-to-width-down/150?cb=20250909152032",
+    ["los 25"]                  = "https://static.wikia.nocookie.net/stealabr/images/9/9b/Transparent_Los_25.png/revision/latest/scale-to-width-down/150?cb=20251218122100",
+    ["los cupids"]              = "https://static.wikia.nocookie.net/stealabr/images/b/bb/Los_Cupids2.png/revision/latest/scale-to-width-down/126?cb=20260308003310",
+    ["los puggies"]             = "https://static.wikia.nocookie.net/stealabr/images/c/c8/LosPuggies2.png/revision/latest/scale-to-width-down/150?cb=20251109012744",
+    ["los primos"]              = "https://static.wikia.nocookie.net/stealabr/images/9/96/LosPrimos.png/revision/latest/scale-to-width-down/150?cb=20251006044831",
+    ["los tacoritas"]           = "https://static.wikia.nocookie.net/stealabr/images/4/40/My_kids_will_also_rob_you.png/revision/latest/scale-to-width-down/150?cb=20250921171602",
+    ["los sekolahs"]            = "https://static.wikia.nocookie.net/stealabr/images/2/2c/Los_Sekolahs2.png/revision/latest/scale-to-width-down/150?cb=20260223143009",
+    ["los spaghettis"]          = "https://static.wikia.nocookie.net/stealabr/images/3/33/Los_Spaghettis.png/revision/latest/scale-to-width-down/150?cb=20260129153809",
+    ["los burritos"]            = "https://static.wikia.nocookie.net/stealabr/images/9/97/LosBurritos.png/revision/latest/scale-to-width-down/150?cb=20251123123907",
+    ["los quesadillas"]         = "https://static.wikia.nocookie.net/stealabr/images/9/99/LosQuesadillas.png/revision/latest/scale-to-width-down/150?cb=20251123123650",
+    ["los amigos"]              = "https://static.wikia.nocookie.net/stealabr/images/0/01/Los_Amigos.png/revision/latest/scale-to-width-down/150?cb=20260222122638",
+    ["los chicleteiras"]        = "https://static.wikia.nocookie.net/stealabr/images/4/4d/Los_ditos.png/revision/latest/scale-to-width-down/150?cb=20251221211400",
+    ["los mi gatitos"]          = "https://static.wikia.nocookie.net/stealabr/images/c/c0/Los_Ay_Mi_Gatitos.png/revision/latest/scale-to-width-down/150?cb=20260219033604",
+    ["swag soda"]               = "https://static.wikia.nocookie.net/stealabr/images/9/9f/Swag_Soda.png/revision/latest/scale-to-width-down/122?cb=20251116003702",
+    ["mariachi corazoni"]       = "https://static.wikia.nocookie.net/stealabr/images/5/5a/MariachiCora.png/revision/latest/scale-to-width-down/99?cb=20251006211910",
+    ["spinny hammy"]            = "https://static.wikia.nocookie.net/stealabr/images/7/7d/SpinnyHammy.png/revision/latest/scale-to-width-down/109?cb=20260124214012",
+    ["las sis"]                 = "https://static.wikia.nocookie.net/stealabr/images/e/e8/Las_Sis.png/revision/latest/scale-to-width-down/135?cb=20250914042020",
+    ["reinito sleighito"]       = "https://static.wikia.nocookie.net/stealabr/images/2/27/Reinito.png/revision/latest/scale-to-width-down/117?cb=20251219225020",
+    ["ketupat bros"]            = "https://static.wikia.nocookie.net/stealabr/images/4/4d/Ketupat_Bros.png/revision/latest/scale-to-width-down/150?cb=20260207220106",
+    ["chipso and queso"]        = "https://static.wikia.nocookie.net/stealabr/images/f/f8/Chipsoqueso.png/revision/latest/scale-to-width-down/133?cb=20251030022105",
+    ["chillin chili"]           = "https://static.wikia.nocookie.net/stealabr/images/e/e0/Chilin.png/revision/latest/scale-to-width-down/119?cb=20251226231712",
+    ["money money reindeer"]    = "https://static.wikia.nocookie.net/stealabr/images/e/ec/MoneyMoneyReindeer.png/revision/latest/scale-to-width-down/118?cb=20251221003105",
+    ["mieteteira bicicleteira"] = "https://static.wikia.nocookie.net/stealabr/images/8/86/Mieteteira_Bicicleteira.png/revision/latest/scale-to-width-down/120?cb=20251125132431",
+    ["ginger gerat"]            = "https://static.wikia.nocookie.net/stealabr/images/8/85/GingerGerat.png/revision/latest/scale-to-width-down/105?cb=20251227115546",
+    ["spooky and pumpky"]       = "https://static.wikia.nocookie.net/stealabr/images/d/d6/Spookypumpky.png/revision/latest/scale-to-width-down/150?cb=20251012023638",
+    ["lovin rose"]              = "https://static.wikia.nocookie.net/stealabr/images/a/ab/LovinRose.png/revision/latest/scale-to-width-down/141?cb=20260208180100",
+    ["jolly jolly sahur"]       = "https://static.wikia.nocookie.net/stealabr/images/f/f1/JollyJollySahur.png/revision/latest/scale-to-width-down/103?cb=20251227120057",
+    ["rosetti tualetti"]        = "https://static.wikia.nocookie.net/stealabr/images/f/f8/Rossetti_Tualetti.png/revision/latest/scale-to-width-down/150?cb=20260208175516",
+    ["antonio"]                 = "https://static.wikia.nocookie.net/stealabr/images/f/f0/Antonio.png/revision/latest/scale-to-width-down/54?cb=20250916001053",
+    ["spaghetti tualetti"]      = "https://static.wikia.nocookie.net/stealabr/images/b/b8/Spaghettitualetti.png/revision/latest/scale-to-width-down/150?cb=20251122142032",
+    ["festive 67"]              = "https://static.wikia.nocookie.net/stealabr/images/c/c8/TransparentFestive67.png/revision/latest/scale-to-width-down/150?cb=20251219224148",
+    ["sammyni fattini"]         = "https://static.wikia.nocookie.net/stealabr/images/0/01/Sammyni_Fattini.png/revision/latest/scale-to-width-down/103?cb=20260224002154",
+    ["guest 666"]               = "https://static.wikia.nocookie.net/stealabr/images/9/99/Guest666t.png/revision/latest/scale-to-width-down/150?cb=20251102022619",
+    ["celularcini viciosini"]   = "https://static.wikia.nocookie.net/stealabr/images/3/38/DO_NOT_GRAB_MY_PHONE%21%21%21.png/revision/latest/scale-to-width-down/99?cb=20250914173250",
+    ["noo my heart"]            = "https://static.wikia.nocookie.net/stealabr/images/7/75/NooMyLoveheart.png/revision/latest/scale-to-width-down/150?cb=20260208175244",
+    ["chimnino"]                = "https://static.wikia.nocookie.net/stealabr/images/c/c5/Chimnino.png/revision/latest/scale-to-width-down/88?cb=20251219223904",
+    ["fishino clownino"]        = "https://static.wikia.nocookie.net/stealabr/images/d/d6/Fishino_Clownino.png/revision/latest/scale-to-width-down/99?cb=20251123122601",
+    ["tacorita bicicleta"]      = "https://static.wikia.nocookie.net/stealabr/images/0/0f/Gonna_rob_you_twin.png/revision/latest/scale-to-width-down/141?cb=20251006133721",
+    ["tacorillo crocodillo"]    = "https://static.wikia.nocookie.net/stealabr/images/7/78/Tacorillo_Crocodrilo.png/revision/latest/scale-to-width-down/86?cb=20260304221935",
+    ["noo my candy"]            = "https://static.wikia.nocookie.net/stealabr/images/7/75/NooMyLoveheart.png/revision/latest/scale-to-width-down/150?cb=20260208175244",
+}
+
+-- =====================
+--   TRAITS & MUTATIONS
+-- =====================
+
+local KNOWN_TRAITS = {
+    "Strawberry","Meowl","Skibidi","Halo","Lance","Fire","Paint",
+    "Reindeer","Brazil","Nyan","Fireworks","Lightning","2026",
+    "Chocolate","Ay Mi Gatito","Jack O Lantern","Santa Hat","Crab",
+    "Glitched","Tung Tung Attack","Rap Concert","Sombrero","Indonesian",
+    "Tie","Matteo Hat","Witching Hour","RIP Tombstone","Bubblegum",
+    "Explosive","Extinct","Galactic","10B","Comet-struck","Spider",
+    "Taco","UFO","Snowy","WetRain","SleepySleepy"
+}
+local KNOWN_MUTATIONS = {
+    "Divine","Cursed","Radioactive","Yin Yang","Galaxy",
+    "Lava","Candy","Rainbow","Bloodrot","Diamond","Gold","Default"
+}
+local TRAIT_SET = {}
+for _, t in ipairs(KNOWN_TRAITS) do TRAIT_SET[t:lower()] = t end
+local MUT_SET = {}
+for _, m in ipairs(KNOWN_MUTATIONS) do MUT_SET[m:lower()] = m end
+
+-- =====================
+--     SPLASH SCREEN
+-- =====================
+
+local SplashGui = Instance.new("ScreenGui")
+SplashGui.Name = "BrainrotSplash"
+SplashGui.ResetOnSpawn = false
+SplashGui.DisplayOrder = 9999
+SplashGui.IgnoreGuiInset = true
+SplashGui.Parent = PlayerGui
+
+local SplashFrame = Instance.new("Frame")
+SplashFrame.Size = UDim2.new(1,0,1,0)
+SplashFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+SplashFrame.BorderSizePixel = 0
+SplashFrame.Parent = SplashGui
+
+local function MakeLbl(text, color, size, ypos)
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(1,0,0,50); l.Position = UDim2.new(0,0,0.4,ypos)
+    l.BackgroundTransparency = 1; l.Text = text; l.TextColor3 = color
+    l.TextSize = size; l.Font = Enum.Font.GothamBold
+    l.TextXAlignment = Enum.TextXAlignment.Center; l.Parent = SplashFrame
+    return l
+end
+MakeLbl("if you paid for this you got scammed 💀", Color3.fromRGB(255,255,255), 24, 0)
+MakeLbl("discord.gg/vjekKrkabR", Color3.fromRGB(88,101,242), 18, 60)
+local SplashSub = MakeLbl("loading in 3...", Color3.fromRGB(100,100,100), 14, 110)
+task.spawn(function()
+    task.wait(1); SplashSub.Text="loading in 2..."
+    task.wait(1); SplashSub.Text="loading in 1..."
+    task.wait(1); SplashGui:Destroy()
+end)
+
+-- =====================
+--       HELPERS
+-- =====================
+
+local function Notify(msg)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification",{Title="🧠 Brainrot Joiner",Text=msg,Duration=5})
+    end)
+    print("[BrainrotJoiner] "..msg)
+end
+
+local function InstantJoin(jobId, name)
+    scanning = false
+    Notify("🚨 "..name.."! Joining...")
+    pcall(function() TeleportService:TeleportToPlaceInstance(PlaceId, jobId, LocalPlayer) end)
+end
+
+local function FindNearestImage(obj, depth)
+    depth = depth or 4
+    if depth <= 0 then return nil end
+    local parent = obj.Parent
+    if not parent then return nil end
+    for _, sib in ipairs(parent:GetChildren()) do
+        if sib:IsA("ImageLabel") and sib.Image ~= "" then return sib.Image end
+        for _, child in ipairs(sib:GetChildren()) do
+            if child:IsA("ImageLabel") and child.Image ~= "" then return child.Image end
+        end
+    end
+    return FindNearestImage(parent, depth - 1)
+end
+
+local function MatchTraitsAndMuts(textList)
+    local traits,mutations,ts,ms = {},{},{},{}
+    for _, text in ipairs(textList) do
+        local tl = text:lower():gsub("^%s+",""):gsub("%s+$","")
+        for key,name in pairs(MUT_SET) do
+            if not ms[name] and tl:find(key,1,true) then ms[name]=true; table.insert(mutations,name) end
+        end
+        for key,name in pairs(TRAIT_SET) do
+            if not ts[name] and tl:find(key,1,true) then ts[name]=true; table.insert(traits,name) end
+        end
+    end
+    return traits, mutations
+end
+
+local function ScanGuiForBrainrots(root)
+    local found = {}
+    local function recurse(obj)
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+            local text = (obj.Text or ""):gsub("^%s+",""):gsub("%s+$","")
+            if #text > 2 and #text < 80 and IsInstantJoin(text) then
+                table.insert(found,{ms=0,name=text,traits={},mutations={},imageId="",instantJoin=true})
+            end
+            if #text <= 20 then
+                local raw = text:match("^([%d%.]+)%s*[Mm]%s*/%s*[Ss]$")
+                if raw then
+                    local val = tonumber(raw)
+                    if val and val >= 1 and val <= 999 then
+                        local parent = obj.Parent
+                        local name = "Unknown Brainrot"
+                        local imageId = FindNearestImage(obj,4) or ""
+                        local siblingTexts = {}
+                        if parent then
+                            for _, sib in ipairs(parent:GetChildren()) do
+                                if sib ~= obj and (sib:IsA("TextLabel") or sib:IsA("TextButton")) then
+                                    local t = (sib.Text or ""):gsub("^%s+",""):gsub("%s+$","")
+                                    if #t > 1 then
+                                        table.insert(siblingTexts,t)
+                                        if #t < 60 and not t:match("^[%d%.]+") and not t:match("[Mm]/%s*[Ss]") then
+                                            local tl = t:lower()
+                                            local isKnown = false
+                                            for key in pairs(TRAIT_SET) do if tl:find(key,1,true) then isKnown=true; break end end
+                                            if not isKnown then for key in pairs(MUT_SET) do if tl:find(key,1,true) then isKnown=true; break end end end
+                                            if not isKnown and name=="Unknown Brainrot"
+                                                and not tl:match("join") and not tl:match("steal") and not tl:match("server") then
+                                                name = t
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if imageId == "" then
+                            local nl = name:lower()
+                            imageId = BRAINROT_IMAGES[nl] or ""
+                        end
+                        local traits, mutations = MatchTraitsAndMuts(siblingTexts)
+                        table.insert(found,{ms=val,name=name,traits=traits,mutations=mutations,imageId=imageId})
+                    end
+                end
+            end
+        end
+        for _, child in ipairs(obj:GetChildren()) do recurse(child) end
+    end
+    recurse(root)
+    return found
+end
+
+local function GetAllBrainrotsOnScreen()
+    local all, seen = {}, {}
+    for _, gui in ipairs(PlayerGui:GetChildren()) do
+        if gui.Name ~= "BrainrotJoinerGui" and gui.Name ~= "BrainrotSplash" then
+            for _, r in ipairs(ScanGuiForBrainrots(gui)) do
+                local key = r.ms..r.name
+                if not seen[key] then seen[key]=true; table.insert(all,r) end
+            end
+        end
+    end
+    pcall(function()
+        for _, gui in ipairs(game:GetService("CoreGui"):GetChildren()) do
+            for _, r in ipairs(ScanGuiForBrainrots(gui)) do
+                local key = r.ms..r.name
+                if not seen[key] then seen[key]=true; table.insert(all,r) end
+            end
+        end
+    end)
+    return all
+end
+
+-- =====================
+--    GUI SETUP
+-- =====================
+
+if PlayerGui:FindFirstChild("BrainrotJoinerGui") then
+    PlayerGui.BrainrotJoinerGui:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BrainrotJoinerGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.DisplayOrder = 999
+ScreenGui.Parent = PlayerGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0,540,0,620)
+MainFrame.Position = UDim2.new(0.5,-270,0.5,-310)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+Instance.new("UICorner",MainFrame).CornerRadius = UDim.new(0,14)
+local MStroke = Instance.new("UIStroke"); MStroke.Color=Color3.fromRGB(0,200,100); MStroke.Thickness=1.5; MStroke.Parent=MainFrame
+
+-- Title bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1,0,0,48)
+TitleBar.BackgroundColor3 = Color3.fromRGB(8,8,8)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+Instance.new("UICorner",TitleBar).CornerRadius = UDim.new(0,14)
+local TFix = Instance.new("Frame"); TFix.Size=UDim2.new(1,0,0.5,0); TFix.Position=UDim2.new(0,0,0.5,0); TFix.BackgroundColor3=Color3.fromRGB(8,8,8); TFix.BorderSizePixel=0; TFix.Parent=TitleBar
+
+local TitleLbl = Instance.new("TextLabel")
+TitleLbl.Size = UDim2.new(1,-60,1,0); TitleLbl.Position = UDim2.new(0,16,0,0)
+TitleLbl.BackgroundTransparency = 1; TitleLbl.Text = "🧠 Steal a Brainrot — Server Browser"
+TitleLbl.TextColor3 = Color3.fromRGB(0,210,110); TitleLbl.TextSize = 14
+TitleLbl.Font = Enum.Font.GothamBold; TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+TitleLbl.Parent = TitleBar
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0,28,0,28); CloseBtn.Position = UDim2.new(1,-38,0.5,-14)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(120,20,20); CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255,100,100); CloseBtn.TextSize = 13
+CloseBtn.Font = Enum.Font.GothamBold; CloseBtn.BorderSizePixel = 0; CloseBtn.Parent = TitleBar
+Instance.new("UICorner",CloseBtn).CornerRadius = UDim.new(0,6)
+CloseBtn.MouseButton1Click:Connect(function() scanning=false; ScreenGui:Destroy() end)
+
+-- =====================
+--    TAB BAR
+-- =====================
+
+local TabBar = Instance.new("Frame")
+TabBar.Size = UDim2.new(1,0,0,36)
+TabBar.Position = UDim2.new(0,0,0,48)
+TabBar.BackgroundColor3 = Color3.fromRGB(4,4,4)
+TabBar.BorderSizePixel = 0
+TabBar.Parent = MainFrame
+
+local TabLayout = Instance.new("UIListLayout")
+TabLayout.FillDirection = Enum.FillDirection.Horizontal
+TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabLayout.Parent = TabBar
+
+local function MakeTab(label, order)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.25,0,1,0)
+    btn.BackgroundColor3 = Color3.fromRGB(4,4,4)
+    btn.BorderSizePixel = 0
+    btn.Text = label
+    btn.TextColor3 = Color3.fromRGB(40,80,50)
+    btn.TextSize = 12
+    btn.Font = Enum.Font.GothamBold
+    btn.LayoutOrder = order
+    btn.Parent = TabBar
+
+    local underline = Instance.new("Frame")
+    underline.Size = UDim2.new(1,0,0,2)
+    underline.Position = UDim2.new(0,0,1,-2)
+    underline.BackgroundColor3 = Color3.fromRGB(0,200,100)
+    underline.BorderSizePixel = 0
+    underline.Visible = false
+    underline.Parent = btn
+
+    return btn, underline
+end
+
+local BrowserTabBtn, BrowserUnderline = MakeTab("🔍 Browser", 1)
+local RareTabBtn, RareUnderline = MakeTab("⭐ Rare", 2)
+local ESPTabBtn, ESPUnderline = MakeTab("👁 ESP", 3)
+local SettingsTabBtn, SettingsUnderline = MakeTab("⚙ Settings", 4)
+
+local ESPPane      -- forward declare
+local SettingsPane -- forward declare
+
+local TabSep = Instance.new("Frame")
+TabSep.Size = UDim2.new(1,0,0,1)
+TabSep.Position = UDim2.new(0,0,0,84)
+TabSep.BackgroundColor3 = Color3.fromRGB(10,25,12)
+TabSep.BorderSizePixel = 0
+TabSep.Parent = MainFrame
+
+-- =====================
+--   BROWSER PANE
+-- =====================
+
+local BrowserPane = Instance.new("Frame")
+BrowserPane.Size = UDim2.new(1,0,1,-86)
+BrowserPane.Position = UDim2.new(0,0,0,86)
+BrowserPane.BackgroundTransparency = 1
+BrowserPane.BorderSizePixel = 0
+BrowserPane.Parent = MainFrame
+
+-- Input row
+local InputRow = Instance.new("Frame")
+InputRow.Size = UDim2.new(1,-28,0,42); InputRow.Position = UDim2.new(0,14,0,10)
+InputRow.BackgroundTransparency = 1; InputRow.Parent = BrowserPane
+local IRL = Instance.new("UIListLayout"); IRL.FillDirection=Enum.FillDirection.Horizontal; IRL.Padding=UDim.new(0,8); IRL.SortOrder=Enum.SortOrder.LayoutOrder; IRL.VerticalAlignment=Enum.VerticalAlignment.Center; IRL.Parent=InputRow
+
+local InputBox = Instance.new("TextBox")
+InputBox.Size=UDim2.new(0.38,0,1,0); InputBox.BackgroundColor3=Color3.fromRGB(8,8,8)
+InputBox.BorderSizePixel=0; InputBox.PlaceholderText="Min M/s  e.g. 30"
+InputBox.PlaceholderColor3=Color3.fromRGB(40,60,45); InputBox.Text=""
+InputBox.TextColor3=Color3.fromRGB(170,255,200); InputBox.TextSize=15
+InputBox.Font=Enum.Font.GothamBold; InputBox.ClearTextOnFocus=false; InputBox.LayoutOrder=1
+InputBox.Parent=InputRow
+Instance.new("UICorner",InputBox).CornerRadius=UDim.new(0,10)
+local IBS=Instance.new("UIStroke"); IBS.Color=Color3.fromRGB(0,80,40); IBS.Thickness=1.2; IBS.Parent=InputBox
+
+local StartBtn = Instance.new("TextButton")
+StartBtn.Size=UDim2.new(0.3,0,1,0); StartBtn.BackgroundColor3=Color3.fromRGB(0,100,50)
+StartBtn.Text="▶  START"; StartBtn.TextColor3=Color3.fromRGB(255,255,255)
+StartBtn.TextSize=13; StartBtn.Font=Enum.Font.GothamBold; StartBtn.BorderSizePixel=0; StartBtn.LayoutOrder=2
+StartBtn.Parent=InputRow; Instance.new("UICorner",StartBtn).CornerRadius=UDim.new(0,10)
+
+local StopBtn = Instance.new("TextButton")
+StopBtn.Size=UDim2.new(0.28,0,1,0); StopBtn.BackgroundColor3=Color3.fromRGB(100,15,15)
+StopBtn.Text="⏹  STOP"; StopBtn.TextColor3=Color3.fromRGB(255,100,100)
+StopBtn.TextSize=13; StopBtn.Font=Enum.Font.GothamBold; StopBtn.BorderSizePixel=0; StopBtn.LayoutOrder=3
+StopBtn.Parent=InputRow; Instance.new("UICorner",StopBtn).CornerRadius=UDim.new(0,10)
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size=UDim2.new(1,-28,0,26); StatusLabel.Position=UDim2.new(0,14,0,58)
+StatusLabel.BackgroundColor3=Color3.fromRGB(5,12,7); StatusLabel.Text="⬤  Idle — enter M/s and press Start"
+StatusLabel.TextColor3=Color3.fromRGB(40,100,60); StatusLabel.TextSize=11
+StatusLabel.Font=Enum.Font.Gotham; StatusLabel.TextWrapped=true; StatusLabel.Parent=BrowserPane
+Instance.new("UICorner",StatusLabel).CornerRadius=UDim.new(0,8)
+
+local function SetStatus(msg,color)
+    StatusLabel.Text=msg; StatusLabel.TextColor3=color or Color3.fromRGB(40,100,60)
+end
+
+local CountBar = Instance.new("Frame")
+CountBar.Size=UDim2.new(1,-28,0,22); CountBar.Position=UDim2.new(0,14,0,90)
+CountBar.BackgroundTransparency=1; CountBar.Parent=BrowserPane
+
+local CountLbl = Instance.new("TextLabel")
+CountLbl.Size=UDim2.new(0.5,0,1,0); CountLbl.BackgroundTransparency=1
+CountLbl.Text="FOUND BRAINROTS"; CountLbl.TextColor3=Color3.fromRGB(20,60,35)
+CountLbl.TextSize=10; CountLbl.Font=Enum.Font.GothamBold
+CountLbl.TextXAlignment=Enum.TextXAlignment.Left; CountLbl.Parent=CountBar
+
+local CountNum = Instance.new("TextLabel")
+CountNum.Size=UDim2.new(0.5,0,1,0); CountNum.Position=UDim2.new(0.5,0,0,0)
+CountNum.BackgroundTransparency=1; CountNum.Text="0"
+CountNum.TextColor3=Color3.fromRGB(0,180,90); CountNum.TextSize=11
+CountNum.Font=Enum.Font.GothamBold; CountNum.TextXAlignment=Enum.TextXAlignment.Right
+CountNum.Parent=CountBar
+
+local cardCount = 0
+local function UpdateCount() CountNum.Text=tostring(cardCount) end
+
+local EmptyLabel = Instance.new("TextLabel")
+EmptyLabel.Size=UDim2.new(1,-28,0,40); EmptyLabel.Position=UDim2.new(0,14,0.45,0)
+EmptyLabel.BackgroundTransparency=1; EmptyLabel.Text="No brainrots found yet — press Start to scan"
+EmptyLabel.TextColor3=Color3.fromRGB(25,40,28); EmptyLabel.TextSize=13
+EmptyLabel.Font=Enum.Font.Gotham; EmptyLabel.TextXAlignment=Enum.TextXAlignment.Center
+EmptyLabel.Parent=BrowserPane
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size=UDim2.new(1,-28,1,-118); ScrollFrame.Position=UDim2.new(0,14,0,116)
+ScrollFrame.BackgroundTransparency=1; ScrollFrame.BorderSizePixel=0
+ScrollFrame.ScrollBarThickness=3; ScrollFrame.ScrollBarImageColor3=Color3.fromRGB(0,150,70)
+ScrollFrame.CanvasSize=UDim2.new(0,0,0,0); ScrollFrame.Visible=false
+ScrollFrame.Parent=BrowserPane
+local SL=Instance.new("UIListLayout"); SL.SortOrder=Enum.SortOrder.LayoutOrder; SL.Padding=UDim.new(0,7); SL.Parent=ScrollFrame
+SL:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollFrame.CanvasSize=UDim2.new(0,0,0,SL.AbsoluteContentSize.Y+12)
+end)
+
+-- =====================
+--   RARE LIST PANE
+-- =====================
+
+local RarePane = Instance.new("Frame")
+RarePane.Size=UDim2.new(1,0,1,-86); RarePane.Position=UDim2.new(0,0,0,86)
+RarePane.BackgroundTransparency=1; RarePane.BorderSizePixel=0
+RarePane.Visible=false; RarePane.Parent=MainFrame
+
+-- Toggle All / None buttons
+local RareTopBar = Instance.new("Frame")
+RareTopBar.Size=UDim2.new(1,-28,0,32); RareTopBar.Position=UDim2.new(0,14,0,8)
+RareTopBar.BackgroundTransparency=1; RareTopBar.Parent=RarePane
+local RTL=Instance.new("UIListLayout"); RTL.FillDirection=Enum.FillDirection.Horizontal; RTL.Padding=UDim.new(0,8); RTL.SortOrder=Enum.SortOrder.LayoutOrder; RTL.VerticalAlignment=Enum.VerticalAlignment.Center; RTL.Parent=RareTopBar
+
+local RareInfo = Instance.new("TextLabel")
+RareInfo.Size=UDim2.new(1,-160,1,0); RareInfo.BackgroundTransparency=1
+RareInfo.Text="✔ = auto-join instantly when detected"
+RareInfo.TextColor3=Color3.fromRGB(40,80,50); RareInfo.TextSize=11
+RareInfo.Font=Enum.Font.Gotham; RareInfo.TextXAlignment=Enum.TextXAlignment.Left
+RareInfo.LayoutOrder=1; RareInfo.Parent=RareTopBar
+
+local AllOnBtn = Instance.new("TextButton")
+AllOnBtn.Size=UDim2.new(0,70,1,0); AllOnBtn.BackgroundColor3=Color3.fromRGB(0,70,35)
+AllOnBtn.Text="ALL ON"; AllOnBtn.TextColor3=Color3.fromRGB(0,200,100)
+AllOnBtn.TextSize=11; AllOnBtn.Font=Enum.Font.GothamBold; AllOnBtn.BorderSizePixel=0
+AllOnBtn.LayoutOrder=2; AllOnBtn.Parent=RareTopBar
+Instance.new("UICorner",AllOnBtn).CornerRadius=UDim.new(0,8)
+
+local AllOffBtn = Instance.new("TextButton")
+AllOffBtn.Size=UDim2.new(0,70,1,0); AllOffBtn.BackgroundColor3=Color3.fromRGB(60,10,10)
+AllOffBtn.Text="ALL OFF"; AllOffBtn.TextColor3=Color3.fromRGB(200,60,60)
+AllOffBtn.TextSize=11; AllOffBtn.Font=Enum.Font.GothamBold; AllOffBtn.BorderSizePixel=0
+AllOffBtn.LayoutOrder=3; AllOffBtn.Parent=RareTopBar
+Instance.new("UICorner",AllOffBtn).CornerRadius=UDim.new(0,8)
+
+-- Rare scroll
+local RareScroll = Instance.new("ScrollingFrame")
+RareScroll.Size=UDim2.new(1,-28,1,-52); RareScroll.Position=UDim2.new(0,14,0,46)
+RareScroll.BackgroundTransparency=1; RareScroll.BorderSizePixel=0
+RareScroll.ScrollBarThickness=3; RareScroll.ScrollBarImageColor3=Color3.fromRGB(0,150,70)
+RareScroll.CanvasSize=UDim2.new(0,0,0,0); RareScroll.Parent=RarePane
+local RSL=Instance.new("UIListLayout"); RSL.SortOrder=Enum.SortOrder.LayoutOrder; RSL.Padding=UDim.new(0,5); RSL.Parent=RareScroll
+RSL:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    RareScroll.CanvasSize=UDim2.new(0,0,0,RSL.AbsoluteContentSize.Y+10)
+end)
+
+-- =====================
+--   COLOR HELPERS
+-- =====================
+
+local function GetMutColor(mut)
+    local c={Divine=Color3.fromRGB(255,240,100),Cursed=Color3.fromRGB(180,0,0),
+        Radioactive=Color3.fromRGB(0,255,100),["Yin Yang"]=Color3.fromRGB(220,220,220),
+        Galaxy=Color3.fromRGB(160,100,255),Lava=Color3.fromRGB(255,100,30),
+        Candy=Color3.fromRGB(255,100,180),Rainbow=Color3.fromRGB(255,100,200),
+        Bloodrot=Color3.fromRGB(120,0,0),Diamond=Color3.fromRGB(100,230,255),
+        Gold=Color3.fromRGB(255,200,0),Default=Color3.fromRGB(60,60,60)}
+    return c[mut] or Color3.fromRGB(60,60,60)
+end
+
+local function GetTraitColor(trait)
+    local c={Strawberry=Color3.fromRGB(255,80,140),Meowl=Color3.fromRGB(255,160,50),
+        Skibidi=Color3.fromRGB(80,160,255),Halo=Color3.fromRGB(255,210,0),
+        Fire=Color3.fromRGB(255,100,30),Lightning=Color3.fromRGB(255,220,60)}
+    return c[trait] or Color3.fromRGB(80,120,100)
+end
+
+-- =====================
+--  POPULATE RARE LIST
+-- =====================
+
+local checkboxRefs = {} -- index -> {frame, checkmark}
+
+local function MakeBadge(parent,text,bgColor,textColor,order)
+    local b=Instance.new("TextLabel"); b.Size=UDim2.new(0,0,0,16); b.AutomaticSize=Enum.AutomaticSize.X
+    b.BackgroundColor3=bgColor; b.Text=" "..text.." "; b.TextColor3=textColor
+    b.TextSize=9; b.Font=Enum.Font.GothamBold; b.BorderSizePixel=0; b.LayoutOrder=order or 1; b.Parent=parent
+    Instance.new("UICorner",b).CornerRadius=UDim.new(0,4); return b
+end
+
+for i, entry in ipairs(RARE_LIST) do
+    local row = Instance.new("Frame")
+    row.Size=UDim2.new(1,-4,0,52); row.BackgroundColor3=Color3.fromRGB(6,6,6)
+    row.BorderSizePixel=0; row.LayoutOrder=i; row.Parent=RareScroll
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,10)
+    local rs=Instance.new("UIStroke"); rs.Color=Color3.fromRGB(0,50,25); rs.Thickness=1; rs.Parent=row
+
+    -- Image box (tries wiki URL)
+    local imgBox = Instance.new("Frame")
+    imgBox.Size=UDim2.new(0,44,0,44); imgBox.Position=UDim2.new(0,8,0.5,-22)
+    imgBox.BackgroundColor3=Color3.fromRGB(10,10,10); imgBox.BorderSizePixel=0; imgBox.Parent=row
+    Instance.new("UICorner",imgBox).CornerRadius=UDim.new(0,8)
+
+    local wikiUrl = BRAINROT_IMAGES[entry.name:lower()]
+    if wikiUrl then
+        local img = Instance.new("ImageLabel")
+        img.Size=UDim2.new(1,-4,1,-4); img.Position=UDim2.new(0,2,0,2)
+        img.BackgroundTransparency=1; img.ScaleType=Enum.ScaleType.Fit
+        img.Image=wikiUrl; img.Parent=imgBox
+    else
+        local fb=Instance.new("TextLabel"); fb.Size=UDim2.new(1,0,1,0)
+        fb.BackgroundTransparency=1; fb.Text="🧠"; fb.TextSize=22
+        fb.Font=Enum.Font.GothamBold; fb.TextXAlignment=Enum.TextXAlignment.Center; fb.Parent=imgBox
+    end
+
+    -- Name label
+    local nameLbl = Instance.new("TextLabel")
+    nameLbl.Size=UDim2.new(1,-130,0,20); nameLbl.Position=UDim2.new(0,60,0,8)
+    nameLbl.BackgroundTransparency=1; nameLbl.Text=entry.name
+    nameLbl.TextColor3=Color3.fromRGB(180,255,210); nameLbl.TextSize=12
+    nameLbl.Font=Enum.Font.GothamBold; nameLbl.TextXAlignment=Enum.TextXAlignment.Left
+    nameLbl.TextTruncate=Enum.TextTruncate.AtEnd; nameLbl.Parent=row
+
+    -- Checkbox area (right side)
+    local cbFrame = Instance.new("Frame")
+    cbFrame.Size=UDim2.new(0,30,0,30); cbFrame.Position=UDim2.new(1,-42,0.5,-15)
+    cbFrame.BackgroundColor3=entry.enabled and Color3.fromRGB(0,100,50) or Color3.fromRGB(20,20,20)
+    cbFrame.BorderSizePixel=0; cbFrame.Parent=row
+    Instance.new("UICorner",cbFrame).CornerRadius=UDim.new(0,8)
+    local cbStroke=Instance.new("UIStroke"); cbStroke.Color=entry.enabled and Color3.fromRGB(0,200,100) or Color3.fromRGB(40,60,45); cbStroke.Thickness=1.5; cbStroke.Parent=cbFrame
+
+    local checkMark = Instance.new("TextLabel")
+    checkMark.Size=UDim2.new(1,0,1,0); checkMark.BackgroundTransparency=1
+    checkMark.Text=entry.enabled and "✓" or ""
+    checkMark.TextColor3=Color3.fromRGB(255,255,255); checkMark.TextSize=16
+    checkMark.Font=Enum.Font.GothamBold; checkMark.TextXAlignment=Enum.TextXAlignment.Center
+    checkMark.Parent=cbFrame
+
+    checkboxRefs[i] = {frame=cbFrame, mark=checkMark, stroke=cbStroke}
+
+    -- Click handler
+    local clickBtn = Instance.new("TextButton")
+    clickBtn.Size=UDim2.new(1,0,1,0); clickBtn.BackgroundTransparency=1
+    clickBtn.Text=""; clickBtn.BorderSizePixel=0; clickBtn.Parent=row
+
+    clickBtn.MouseButton1Click:Connect(function()
+        RARE_LIST[i].enabled = not RARE_LIST[i].enabled
+        local on = RARE_LIST[i].enabled
+        cbFrame.BackgroundColor3 = on and Color3.fromRGB(0,100,50) or Color3.fromRGB(20,20,20)
+        cbStroke.Color = on and Color3.fromRGB(0,200,100) or Color3.fromRGB(40,60,45)
+        checkMark.Text = on and "✓" or ""
+        row.BackgroundColor3 = on and Color3.fromRGB(6,12,8) or Color3.fromRGB(6,6,6)
+        rs.Color = on and Color3.fromRGB(0,80,40) or Color3.fromRGB(0,50,25)
+        -- Rebuild instant set
+        instantSet = BuildInstantSet()
+    end)
+end
+
+-- ALL ON / ALL OFF
+AllOnBtn.MouseButton1Click:Connect(function()
+    for i, entry in ipairs(RARE_LIST) do
+        entry.enabled = true
+        checkboxRefs[i].frame.BackgroundColor3 = Color3.fromRGB(0,100,50)
+        checkboxRefs[i].stroke.Color = Color3.fromRGB(0,200,100)
+        checkboxRefs[i].mark.Text = "✓"
+    end
+    instantSet = BuildInstantSet()
+end)
+
+AllOffBtn.MouseButton1Click:Connect(function()
+    for i, entry in ipairs(RARE_LIST) do
+        entry.enabled = false
+        checkboxRefs[i].frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+        checkboxRefs[i].stroke.Color = Color3.fromRGB(40,60,45)
+        checkboxRefs[i].mark.Text = ""
+    end
+    instantSet = BuildInstantSet()
+end)
+
+-- =====================
+--   TAB SWITCHING
+-- =====================
+
+local function SwitchTab(tab)
+    BrowserPane.Visible    = tab == "browser"
+    RarePane.Visible       = tab == "rare"
+    ESPPane.Visible        = tab == "esp"
+    SettingsPane.Visible   = tab == "settings"
+
+    BrowserTabBtn.TextColor3   = tab=="browser"  and Color3.fromRGB(0,200,100) or Color3.fromRGB(40,80,50)
+    RareTabBtn.TextColor3      = tab=="rare"      and Color3.fromRGB(0,200,100) or Color3.fromRGB(40,80,50)
+    ESPTabBtn.TextColor3       = tab=="esp"       and Color3.fromRGB(0,200,100) or Color3.fromRGB(40,80,50)
+    SettingsTabBtn.TextColor3  = tab=="settings"  and Color3.fromRGB(0,200,100) or Color3.fromRGB(40,80,50)
+
+    BrowserUnderline.Visible   = tab == "browser"
+    RareUnderline.Visible      = tab == "rare"
+    ESPUnderline.Visible       = tab == "esp"
+    SettingsUnderline.Visible  = tab == "settings"
+end
+
+BrowserTabBtn.MouseButton1Click:Connect(function() SwitchTab("browser") end)
+RareTabBtn.MouseButton1Click:Connect(function() SwitchTab("rare") end)
+ESPTabBtn.MouseButton1Click:Connect(function() SwitchTab("esp") end)
+SettingsTabBtn.MouseButton1Click:Connect(function() SwitchTab("settings") end)
+SwitchTab("browser")
+
+-- =====================
+--   CARD BUILDER
+-- =====================
+
+local function AddBrainrotCard(data)
+    EmptyLabel.Visible=false; ScrollFrame.Visible=true
+    cardCount+=1; UpdateCount()
+
+    local card=Instance.new("Frame"); card.Size=UDim2.new(1,-4,0,82)
+    card.BackgroundColor3=Color3.fromRGB(6,6,6); card.BorderSizePixel=0; card.Parent=ScrollFrame
+    Instance.new("UICorner",card).CornerRadius=UDim.new(0,12)
+    local cs=Instance.new("UIStroke"); cs.Color=Color3.fromRGB(0,60,30); cs.Thickness=1; cs.Parent=card
+
+    local accentMut=data.mutations[1] or "Default"
+    local ab=Instance.new("Frame"); ab.Size=UDim2.new(0,3,1,0)
+    ab.BackgroundColor3=GetMutColor(accentMut); ab.BorderSizePixel=0; ab.Parent=card
+    Instance.new("UICorner",ab).CornerRadius=UDim.new(0,2)
+
+    local imgBox=Instance.new("Frame"); imgBox.Size=UDim2.new(0,60,0,60); imgBox.Position=UDim2.new(0,11,0.5,-30)
+    imgBox.BackgroundColor3=Color3.fromRGB(12,12,12); imgBox.BorderSizePixel=0; imgBox.Parent=card
+    Instance.new("UICorner",imgBox).CornerRadius=UDim.new(0,10)
+
+    if data.imageId and data.imageId ~= "" then
+        local img=Instance.new("ImageLabel"); img.Size=UDim2.new(1,-6,1,-6); img.Position=UDim2.new(0,3,0,3)
+        img.BackgroundTransparency=1; img.ScaleType=Enum.ScaleType.Fit; img.Image=data.imageId; img.Parent=imgBox
+    else
+        local fb=Instance.new("TextLabel"); fb.Size=UDim2.new(1,0,1,0); fb.BackgroundTransparency=1
+        fb.Text="🧠"; fb.TextSize=28; fb.Font=Enum.Font.GothamBold
+        fb.TextXAlignment=Enum.TextXAlignment.Center; fb.Parent=imgBox
+    end
+
+    local info=Instance.new("Frame"); info.Size=UDim2.new(1,-172,1,-14); info.Position=UDim2.new(0,80,0,7)
+    info.BackgroundTransparency=1; info.Parent=card
+    local IL=Instance.new("UIListLayout"); IL.SortOrder=Enum.SortOrder.LayoutOrder; IL.Padding=UDim.new(0,4); IL.Parent=info
+
+    local nameRow=Instance.new("Frame"); nameRow.Size=UDim2.new(1,0,0,20); nameRow.BackgroundTransparency=1; nameRow.LayoutOrder=1; nameRow.Parent=info
+    local nl=Instance.new("TextLabel"); nl.Size=UDim2.new(0.65,0,1,0); nl.BackgroundTransparency=1
+    nl.Text=data.name; nl.TextColor3=Color3.fromRGB(200,255,220); nl.TextSize=13
+    nl.Font=Enum.Font.GothamBold; nl.TextXAlignment=Enum.TextXAlignment.Left
+    nl.TextTruncate=Enum.TextTruncate.AtEnd; nl.Parent=nameRow
+    local mb=Instance.new("TextLabel"); mb.Size=UDim2.new(0.35,0,1,0); mb.Position=UDim2.new(0.65,0,0,0)
+    mb.BackgroundColor3=Color3.fromRGB(0,40,20); mb.Text=data.ms.."M/s"
+    mb.TextColor3=Color3.fromRGB(0,200,100); mb.TextSize=12; mb.Font=Enum.Font.GothamBold
+    mb.BorderSizePixel=0; mb.Parent=nameRow; Instance.new("UICorner",mb).CornerRadius=UDim.new(0,5)
+
+    local tr=Instance.new("Frame"); tr.Size=UDim2.new(1,0,0,18); tr.BackgroundTransparency=1; tr.LayoutOrder=2; tr.Parent=info
+    local TRL=Instance.new("UIListLayout"); TRL.FillDirection=Enum.FillDirection.Horizontal; TRL.Padding=UDim.new(0,4); TRL.SortOrder=Enum.SortOrder.LayoutOrder; TRL.Parent=tr
+    if #data.traits>0 then
+        for i2,trait in ipairs(data.traits) do local tc=GetTraitColor(trait); MakeBadge(tr,trait,Color3.fromRGB(tc.R*25,tc.G*25,tc.B*25),tc,i2) end
+    else
+        local nt=Instance.new("TextLabel"); nt.Size=UDim2.new(1,0,1,0); nt.BackgroundTransparency=1
+        nt.Text="No traits"; nt.TextColor3=Color3.fromRGB(30,45,33); nt.TextSize=10; nt.Font=Enum.Font.Gotham
+        nt.TextXAlignment=Enum.TextXAlignment.Left; nt.Parent=tr
+    end
+
+    local mr=Instance.new("Frame"); mr.Size=UDim2.new(1,0,0,18); mr.BackgroundTransparency=1; mr.LayoutOrder=3; mr.Parent=info
+    local MRL=Instance.new("UIListLayout"); MRL.FillDirection=Enum.FillDirection.Horizontal; MRL.Padding=UDim.new(0,4); MRL.SortOrder=Enum.SortOrder.LayoutOrder; MRL.Parent=mr
+    if #data.mutations>0 and data.mutations[1]~="Default" then
+        for i2,mut in ipairs(data.mutations) do local mc=GetMutColor(mut); MakeBadge(mr,mut,Color3.fromRGB(mc.R*25,mc.G*25,mc.B*25),mc,i2) end
+    else
+        local nm=Instance.new("TextLabel"); nm.Size=UDim2.new(1,0,1,0); nm.BackgroundTransparency=1
+        nm.Text="No mut"; nm.TextColor3=Color3.fromRGB(30,45,33); nm.TextSize=10; nm.Font=Enum.Font.Gotham
+        nm.TextXAlignment=Enum.TextXAlignment.Left; nm.Parent=mr
+    end
+
+    local rf=Instance.new("Frame"); rf.Size=UDim2.new(0,76,1,-14); rf.Position=UDim2.new(1,-84,0,7)
+    rf.BackgroundTransparency=1; rf.Parent=card
+    local BRL=Instance.new("UIListLayout"); BRL.SortOrder=Enum.SortOrder.LayoutOrder; BRL.Padding=UDim.new(0,5); BRL.HorizontalAlignment=Enum.HorizontalAlignment.Center; BRL.Parent=rf
+
+    local jb=Instance.new("TextButton"); jb.Size=UDim2.new(1,0,0,28); jb.BackgroundColor3=Color3.fromRGB(0,110,55)
+    jb.Text="JOIN"; jb.TextColor3=Color3.fromRGB(255,255,255); jb.TextSize=13
+    jb.Font=Enum.Font.GothamBold; jb.BorderSizePixel=0; jb.LayoutOrder=1; jb.Parent=rf
+    Instance.new("UICorner",jb).CornerRadius=UDim.new(0,8)
+
+    local db=Instance.new("TextButton"); db.Size=UDim2.new(1,0,0,22); db.BackgroundColor3=Color3.fromRGB(80,10,10)
+    db.Text="DELETE"; db.TextColor3=Color3.fromRGB(200,60,60); db.TextSize=11
+    db.Font=Enum.Font.GothamBold; db.BorderSizePixel=0; db.LayoutOrder=2; db.Parent=rf
+    Instance.new("UICorner",db).CornerRadius=UDim.new(0,8)
+
+    jb.MouseButton1Click:Connect(function()
+        jb.Text="..."; jb.BackgroundColor3=Color3.fromRGB(0,60,30)
+        pcall(function() TeleportService:TeleportToPlaceInstance(PlaceId,data.jobId,LocalPlayer) end)
+        task.wait(3); jb.Text="JOIN"; jb.BackgroundColor3=Color3.fromRGB(0,110,55)
+    end)
+
+    db.MouseButton1Click:Connect(function()
+        card:Destroy(); cardCount=math.max(0,cardCount-1); UpdateCount()
+        local count=0
+        for _,c in ipairs(ScrollFrame:GetChildren()) do if c:IsA("Frame") then count+=1 end end
+        if count==0 then EmptyLabel.Visible=true; ScrollFrame.Visible=false end
+    end)
+end
+
+-- =====================
+--      ESP PANE
+-- =====================
+
+ESPPane = Instance.new("Frame")
+ESPPane.Size=UDim2.new(1,0,1,-86); ESPPane.Position=UDim2.new(0,0,0,86)
+ESPPane.BackgroundTransparency=1; ESPPane.BorderSizePixel=0
+ESPPane.Visible=false; ESPPane.Parent=MainFrame
+
+-- ESP state variables
+local espMasterOn    = true
+local espBoxOn       = true
+local espLineOn      = true
+local espLabelOn     = true
+local espHighestOnly = true
+local espRunning     = false
+
+local ESPScroll = Instance.new("ScrollingFrame")
+ESPScroll.Size=UDim2.new(1,-20,1,-10); ESPScroll.Position=UDim2.new(0,10,0,6)
+ESPScroll.BackgroundTransparency=1; ESPScroll.BorderSizePixel=0
+ESPScroll.ScrollBarThickness=3; ESPScroll.ScrollBarImageColor3=Color3.fromRGB(0,150,70)
+ESPScroll.CanvasSize=UDim2.new(0,0,0,0); ESPScroll.Parent=ESPPane
+local ESPL=Instance.new("UIListLayout"); ESPL.SortOrder=Enum.SortOrder.LayoutOrder
+ESPL.Padding=UDim.new(0,5); ESPL.Parent=ESPScroll
+ESPL:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ESPScroll.CanvasSize=UDim2.new(0,0,0,ESPL.AbsoluteContentSize.Y+10)
+end)
+
+-- Flat toggle row — always visible, no expand needed
+local function MakeESPRow(text, startOn, order, callback)
+    local row=Instance.new("Frame")
+    row.Size=UDim2.new(1,0,0,42); row.BorderSizePixel=0
+    row.LayoutOrder=order; row.Parent=ESPScroll
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,9)
+    local rs=Instance.new("UIStroke"); rs.Thickness=1; rs.Parent=row
+
+    local lbl=Instance.new("TextLabel")
+    lbl.Size=UDim2.new(1,-80,1,0); lbl.Position=UDim2.new(0,12,0,0)
+    lbl.BackgroundTransparency=1; lbl.Text=text
+    lbl.TextColor3=Color3.fromRGB(160,230,180); lbl.TextSize=12
+    lbl.Font=Enum.Font.GothamBold; lbl.TextXAlignment=Enum.TextXAlignment.Left
+    lbl.TextWrapped=true; lbl.Parent=row
+
+    local on = startOn
+    local btn=Instance.new("TextButton")
+    btn.Size=UDim2.new(0,58,0,26); btn.Position=UDim2.new(1,-66,0.5,-13)
+    btn.BorderSizePixel=0; btn.TextSize=12; btn.Font=Enum.Font.GothamBold; btn.Parent=row
+    Instance.new("UICorner",btn).CornerRadius=UDim.new(0,7)
+
+    local function Refresh()
+        btn.Text = on and "ON" or "OFF"
+        btn.BackgroundColor3 = on and Color3.fromRGB(0,110,55) or Color3.fromRGB(80,15,15)
+        btn.TextColor3 = on and Color3.fromRGB(180,255,210) or Color3.fromRGB(255,80,80)
+        row.BackgroundColor3 = on and Color3.fromRGB(5,12,7) or Color3.fromRGB(10,5,5)
+        rs.Color = on and Color3.fromRGB(0,80,40) or Color3.fromRGB(60,15,15)
+    end
+    Refresh()
+
+    btn.MouseButton1Click:Connect(function()
+        on = not on; Refresh(); callback(on)
+    end)
+    return btn
+end
+
+-- Status line at top
+local ESPStatus = Instance.new("TextLabel")
+ESPStatus.Size=UDim2.new(1,0,0,18); ESPStatus.BackgroundTransparency=1
+ESPStatus.Text="👁  ESP ON  —  scanning workspace for brainrots..."
+ESPStatus.TextColor3=Color3.fromRGB(0,190,90); ESPStatus.TextSize=10
+ESPStatus.Font=Enum.Font.Gotham; ESPStatus.TextWrapped=true
+ESPStatus.TextXAlignment=Enum.TextXAlignment.Left
+ESPStatus.LayoutOrder=1; ESPStatus.Parent=ESPScroll
+
+-- All 5 toggles, flat and always visible
+MakeESPRow("👁  Enable ESP  (master on/off)", true, 2, function(on)
+    espMasterOn = on
+    ESPStatus.Text = on and "👁  ESP ON  —  scanning workspace..." or "⬤  ESP disabled"
+    ESPStatus.TextColor3 = on and Color3.fromRGB(0,190,90) or Color3.fromRGB(140,50,50)
+    if on and not espRunning then task.spawn(ESPLoop) end
+end)
+
+MakeESPRow("🎯  Highest M/s only  (OFF = track all)", true, 3, function(on)
+    espHighestOnly = on
+end)
+
+MakeESPRow("⬛  Box  —  coloured outline around brainrot", true, 4, function(on)
+    espBoxOn = on
+    for _, obj in pairs(espObjects) do
+        if obj.hl then pcall(function() obj.hl:Destroy() end); obj.hl=nil end
+    end
+end)
+
+MakeESPRow("📍  Line  —  draw line from screen to brainrot", true, 5, function(on)
+    espLineOn = on
+    if not on then
+        for _, obj in pairs(espObjects) do
+            if obj.line then pcall(function() obj.line:Remove() end); obj.line=nil end
+        end
+    end
+end)
+
+MakeESPRow("🏷  Label  —  floating name + M/s tag", true, 6, function(on)
+    espLabelOn = on
+    for _, obj in pairs(espObjects) do
+        if obj.bb then pcall(function() obj.bb:Destroy() end); obj.bb=nil end
+    end
+end)
+
+-- =====================
+--   SETTINGS PANE
+-- =====================
+
+SettingsPane = Instance.new("Frame")
+SettingsPane.Size=UDim2.new(1,0,1,-86); SettingsPane.Position=UDim2.new(0,0,0,86)
+SettingsPane.BackgroundTransparency=1; SettingsPane.BorderSizePixel=0
+SettingsPane.Visible=false; SettingsPane.Parent=MainFrame
+
+local SetScroll = Instance.new("ScrollingFrame")
+SetScroll.Size=UDim2.new(1,-20,1,-10); SetScroll.Position=UDim2.new(0,10,0,6)
+SetScroll.BackgroundTransparency=1; SetScroll.BorderSizePixel=0
+SetScroll.ScrollBarThickness=3; SetScroll.ScrollBarImageColor3=Color3.fromRGB(0,150,70)
+SetScroll.CanvasSize=UDim2.new(0,0,0,300); SetScroll.Parent=SettingsPane
+
+-- Section: UI Scale
+local scaleCard = Instance.new("Frame")
+scaleCard.Size=UDim2.new(1,0,0,140); scaleCard.Position=UDim2.new(0,0,0,8)
+scaleCard.BackgroundColor3=Color3.fromRGB(5,12,7); scaleCard.BorderSizePixel=0; scaleCard.Parent=SetScroll
+Instance.new("UICorner",scaleCard).CornerRadius=UDim.new(0,10)
+local scStroke=Instance.new("UIStroke"); scStroke.Color=Color3.fromRGB(0,80,40); scStroke.Thickness=1; scStroke.Parent=scaleCard
+
+local scaleTitleLbl = Instance.new("TextLabel")
+scaleTitleLbl.Size=UDim2.new(1,-20,0,26); scaleTitleLbl.Position=UDim2.new(0,12,0,10)
+scaleTitleLbl.BackgroundTransparency=1; scaleTitleLbl.Text="⚙  UI Scale"
+scaleTitleLbl.TextColor3=Color3.fromRGB(0,210,100); scaleTitleLbl.TextSize=14
+scaleTitleLbl.Font=Enum.Font.GothamBold; scaleTitleLbl.TextXAlignment=Enum.TextXAlignment.Left
+scaleTitleLbl.Parent=scaleCard
+
+local scaleDesc = Instance.new("TextLabel")
+scaleDesc.Size=UDim2.new(1,-20,0,16); scaleDesc.Position=UDim2.new(0,12,0,34)
+scaleDesc.BackgroundTransparency=1; scaleDesc.Text="Drag to resize the entire menu"
+scaleDesc.TextColor3=Color3.fromRGB(50,100,65); scaleDesc.TextSize=10
+scaleDesc.Font=Enum.Font.Gotham; scaleDesc.TextXAlignment=Enum.TextXAlignment.Left
+scaleDesc.Parent=scaleCard
+
+-- Scale value label
+local scaleValLbl = Instance.new("TextLabel")
+scaleValLbl.Size=UDim2.new(0,50,0,26); scaleValLbl.Position=UDim2.new(1,-58,0,10)
+scaleValLbl.BackgroundTransparency=1; scaleValLbl.Text="100%"
+scaleValLbl.TextColor3=Color3.fromRGB(0,200,100); scaleValLbl.TextSize=13
+scaleValLbl.Font=Enum.Font.GothamBold; scaleValLbl.TextXAlignment=Enum.TextXAlignment.Right
+scaleValLbl.Parent=scaleCard
+
+-- Slider track
+local sliderTrack = Instance.new("Frame")
+sliderTrack.Size=UDim2.new(1,-24,0,6); sliderTrack.Position=UDim2.new(0,12,0,62)
+sliderTrack.BackgroundColor3=Color3.fromRGB(20,40,25); sliderTrack.BorderSizePixel=0; sliderTrack.Parent=scaleCard
+Instance.new("UICorner",sliderTrack).CornerRadius=UDim.new(0,3)
+
+local sliderFill = Instance.new("Frame")
+sliderFill.Size=UDim2.new(0.5,0,1,0); sliderFill.BackgroundColor3=Color3.fromRGB(0,180,80)
+sliderFill.BorderSizePixel=0; sliderFill.Parent=sliderTrack
+Instance.new("UICorner",sliderFill).CornerRadius=UDim.new(0,3)
+
+local sliderKnob = Instance.new("TextButton")
+sliderKnob.Size=UDim2.new(0,18,0,18); sliderKnob.Position=UDim2.new(0.5,-9,0.5,-9)
+sliderKnob.BackgroundColor3=Color3.fromRGB(0,220,100); sliderKnob.BorderSizePixel=0
+sliderKnob.Text=""; sliderKnob.AutoButtonColor=false; sliderKnob.Parent=sliderTrack
+Instance.new("UICorner",sliderKnob).CornerRadius=UDim.new(0,9)
+
+-- Preset buttons row
+local presetRow = Instance.new("Frame")
+presetRow.Size=UDim2.new(1,-24,0,30); presetRow.Position=UDim2.new(0,12,0,80)
+presetRow.BackgroundTransparency=1; presetRow.BorderSizePixel=0; presetRow.Parent=scaleCard
+local presetLayout=Instance.new("UIListLayout"); presetLayout.FillDirection=Enum.FillDirection.Horizontal
+presetLayout.SortOrder=Enum.SortOrder.LayoutOrder; presetLayout.Padding=UDim.new(0,6); presetLayout.Parent=presetRow
+
+-- Current scale (0.5 = 50% of slider = 1.0 actual scale since range is 0.6–1.6)
+local currentScale = 1.0
+local SCALE_MIN = 0.6
+local SCALE_MAX = 1.6
+
+local function ApplyScale(s)
+    currentScale = math.clamp(s, SCALE_MIN, SCALE_MAX)
+    local pct = (currentScale - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)
+    sliderFill.Size = UDim2.new(pct, 0, 1, 0)
+    sliderKnob.Position = UDim2.new(pct, -9, 0.5, -9)
+    scaleValLbl.Text = math.floor(currentScale * 100 + 0.5) .. "%"
+    -- Resize the ScreenGui root frame
+    MainFrame.Size = UDim2.new(0, math.floor(540 * currentScale), 0, math.floor(600 * currentScale))
+end
+
+local function MakePreset(label, scale, order)
+    local pb = Instance.new("TextButton")
+    pb.Size = UDim2.new(0, 62, 1, 0)
+    pb.BackgroundColor3 = Color3.fromRGB(8,22,12); pb.BorderSizePixel=0
+    pb.Text = label; pb.TextSize=11; pb.Font=Enum.Font.GothamBold
+    pb.TextColor3=Color3.fromRGB(0,180,80); pb.LayoutOrder=order; pb.Parent=presetRow
+    Instance.new("UICorner",pb).CornerRadius=UDim.new(0,7)
+    Instance.new("UIStroke",pb).Color=Color3.fromRGB(0,70,35)
+    pb.MouseButton1Click:Connect(function() ApplyScale(scale) end)
+end
+
+MakePreset("75%",  0.75, 1)
+MakePreset("100%", 1.00, 2)
+MakePreset("125%", 1.25, 3)
+MakePreset("150%", 1.50, 4)
+
+-- Slider drag logic
+local dragging = false
+sliderKnob.MouseButton1Down:Connect(function()
+    dragging = true
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(inp)
+    if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+        local trackPos = sliderTrack.AbsolutePosition.X
+        local trackW   = sliderTrack.AbsoluteSize.X
+        local rel = math.clamp((inp.Position.X - trackPos) / trackW, 0, 1)
+        ApplyScale(SCALE_MIN + rel * (SCALE_MAX - SCALE_MIN))
+    end
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+ApplyScale(1.0) -- init at 100%
+
+-- =====================
+--    ESP ENGINE
+-- =====================
+
+-- Drawing objects pool: {highlight, billboard, line}
+local espObjects = {}  -- key = model, value = {hl, bb, line}
+
+local function ClearAllESP()
+    for model, obj in pairs(espObjects) do
+        pcall(function()
+            if obj.hl then obj.hl:Destroy() end
+            if obj.bb then obj.bb:Destroy() end
+            if obj.line then obj.line:Remove() end
+        end)
+    end
+    espObjects = {}
+end
+
+local function GetRootPart(model)
+    if model:IsA("BasePart") then return model end
+    local hrp = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
+    return hrp
+end
+
+-- Find all brainrot models in workspace by name matching
+local function FindBrainrotsInWorkspace()
+    local found = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if (obj:IsA("Model") or obj:IsA("BasePart")) and #obj.Name > 2 then
+            local nl = obj.Name:lower()
+            -- look for M/s related values stored on model
+            local msChild = obj:FindFirstChild("MS") or obj:FindFirstChild("M/s")
+                         or obj:FindFirstChild("MoneyPerSecond") or obj:FindFirstChild("MPS")
+                         or obj:FindFirstChild("Value")
+            local ms = 0
+            if msChild and (msChild:IsA("NumberValue") or msChild:IsA("IntValue")) then
+                ms = msChild.Value
+            end
+            -- Check if name matches a known brainrot pattern
+            local looksLikeBrainrot = false
+            if nl:find("tralal") or nl:find("sahur") or nl:find("brainrot") or nl:find("los ") or
+               nl:find("la ") or nl:find("griffin") or nl:find("pegasus") or nl:find("spyder") or
+               nl:find("tung") or nl:find("ino$") or nl:find("edon$") or nl:find("ito$") or
+               nl:find("ero$") or nl:find("ella$") or nl:find("illo$") or nl:find("ura$") or
+               nl:find("uru$") or ms > 0 then
+                looksLikeBrainrot = true
+            end
+            if looksLikeBrainrot then
+                local root = GetRootPart(obj)
+                if root then
+                    table.insert(found, {model=obj, root=root, name=obj.Name, ms=ms})
+                end
+            end
+        end
+    end
+    return found
+end
+
+local function GetESPColor(ms)
+    if ms >= 200 then return Color3.fromRGB(255,50,50)   end  -- red = very high
+    if ms >= 100 then return Color3.fromRGB(255,165,0)   end  -- orange
+    if ms >= 50  then return Color3.fromRGB(255,255,0)   end  -- yellow
+    if ms >= 20  then return Color3.fromRGB(0,200,255)   end  -- cyan
+    return Color3.fromRGB(0,255,100)                          -- green = low
+end
+
+local camera = workspace.CurrentCamera
+
+local function WorldToViewport(pos)
+    local screenPos, onScreen = camera:WorldToViewportPoint(pos)
+    return Vector2.new(screenPos.X, screenPos.Y), onScreen, screenPos.Z
+end
+
+local function ApplyESPToModel(data)
+    local model = data.model
+    local root  = data.root
+    local ms    = data.ms
+    local col   = GetESPColor(ms)
+
+    -- Remove old if exists
+    if espObjects[model] then
+        pcall(function()
+            if espObjects[model].hl  then espObjects[model].hl:Destroy() end
+            if espObjects[model].bb  then espObjects[model].bb:Destroy() end
+            if espObjects[model].line then espObjects[model].line:Remove() end
+        end)
+    end
+
+    local obj = {}
+
+    -- BOX using Highlight
+    if espBoxOn then
+        local ok, hl = pcall(function()
+            local h = Instance.new("Highlight")
+            h.FillColor = col
+            h.OutlineColor = col
+            h.FillTransparency = 0.75
+            h.OutlineTransparency = 0
+            h.Adornee = model:IsA("Model") and model or root
+            h.Parent = model:IsA("Model") and model or root
+            return h
+        end)
+        if ok then obj.hl = hl end
+    end
+
+    -- LABEL using BillboardGui
+    if espLabelOn then
+        local ok2, bb = pcall(function()
+            local bg = Instance.new("BillboardGui")
+            bg.Size = UDim2.new(0,120,0,36)
+            bg.StudsOffset = Vector3.new(0,3,0)
+            bg.AlwaysOnTop = true
+            bg.Adornee = root
+            bg.Parent = root
+
+            local lbl = Instance.new("TextLabel")
+            lbl.Size = UDim2.new(1,0,1,0)
+            lbl.BackgroundColor3 = Color3.fromRGB(0,0,0)
+            lbl.BackgroundTransparency = 0.4
+            lbl.TextColor3 = col
+            lbl.Text = data.name..(ms>0 and (" ["..ms.."M/s]") or "")
+            lbl.TextSize = 12
+            lbl.Font = Enum.Font.GothamBold
+            lbl.TextWrapped = true
+            lbl.Parent = bg
+            Instance.new("UICorner", lbl).CornerRadius = UDim.new(0,4)
+
+            return bg
+        end)
+        if ok2 then obj.bb = bb end
+    end
+
+    espObjects[model] = obj
+end
+
+local function DrawESPLines(targets)
+    -- Clear previous lines
+    for model, obj in pairs(espObjects) do
+        if obj.line then
+            pcall(function() obj.line:Remove() end)
+            espObjects[model].line = nil
+        end
+    end
+
+    if not espLineOn then return end
+
+    local vpSize = camera.ViewportSize
+    local origin = Vector2.new(vpSize.X / 2, vpSize.Y)  -- bottom center of screen
+
+    for _, data in ipairs(targets) do
+        local model = data.model
+        local root  = data.root
+        if not espObjects[model] then espObjects[model] = {} end
+
+        local ok, line = pcall(function()
+            local screenPos, onScreen, depth = WorldToViewport(root.Position)
+            if not onScreen or depth < 0 then return nil end
+            local col = GetESPColor(data.ms)
+            local l = Drawing.new("Line")
+            l.Visible = true
+            l.From = origin
+            l.To   = screenPos
+            l.Color = col
+            l.Thickness = 1.5
+            l.Transparency = 0
+            return l
+        end)
+        if ok and line then
+            espObjects[model].line = line
+        end
+    end
+end
+
+-- Separate fast loop just for redrawing lines (positions change constantly)
+local function LineDrawLoop()
+    while espMasterOn do
+        -- Build current target list for line drawing
+        local allBrainrots = FindBrainrotsInWorkspace()
+        local targets = {}
+        if espHighestOnly then
+            local best = nil
+            for _, b in ipairs(allBrainrots) do
+                if not best or b.ms > best.ms then best = b end
+            end
+            if best then table.insert(targets, best) end
+        else
+            targets = allBrainrots
+        end
+        DrawESPLines(targets)
+        task.wait(0.05)
+    end
+end
+
+local function ESPLoop()
+    espRunning = true
+    task.spawn(LineDrawLoop)  -- start fast line loop
+
+    while espMasterOn do
+        local allBrainrots = FindBrainrotsInWorkspace()
+
+        -- Filter: highest only or all
+        local targets = {}
+        if espHighestOnly then
+            local best = nil
+            for _, b in ipairs(allBrainrots) do
+                if not best or b.ms > best.ms then best = b end
+            end
+            if best then table.insert(targets, best) end
+        else
+            targets = allBrainrots
+        end
+
+        -- Remove ESP from models no longer in targets
+        local targetSet = {}
+        for _, t in ipairs(targets) do targetSet[t.model] = true end
+        for model, obj in pairs(espObjects) do
+            if not targetSet[model] then
+                pcall(function()
+                    if obj.hl  then obj.hl:Destroy()  end
+                    if obj.bb  then obj.bb:Destroy()  end
+                    if obj.line then obj.line:Remove() end
+                end)
+                espObjects[model] = nil
+            end
+        end
+
+        -- Apply ESP to targets
+        for _, data in ipairs(targets) do
+            ApplyESPToModel(data)
+        end
+
+        -- Update ESP status label
+        if #targets > 0 then
+            local best = targets[1]
+            for _, t in ipairs(targets) do if t.ms > best.ms then best = t end end
+            ESPStatus.Text = "👁  Tracking "..#targets.." brainrot(s)  |  Best: "..best.name..(best.ms>0 and " ["..best.ms.."M/s]" or "")
+            ESPStatus.TextColor3 = Color3.fromRGB(0,200,100)
+        else
+            ESPStatus.Text = "👁  ESP on — no brainrots found in workspace yet"
+            ESPStatus.TextColor3 = Color3.fromRGB(80,130,90)
+        end
+
+        task.wait(2)
+    end
+
+    -- Cleanup when ESP turns off
+    ClearAllESP()
+    ESPStatus.Text = "⬤  ESP off"
+    ESPStatus.TextColor3 = Color3.fromRGB(40,100,60)
+    espRunning = false
+end
+
+-- Clean up ESP when GUI closes
+CloseBtn.MouseButton1Click:Connect(function()
+    espMasterOn = false
+    ClearAllESP()
+end)
+
+-- =====================
+--     SCAN LOOP
+-- =====================
+
+local function ScanLoop()
+    local addedKeys = {}
+
+    while scanning do
+        local brainrots = GetAllBrainrotsOnScreen()
+
+        -- INSTANT JOIN CHECK (only if that brainrot is enabled/checked)
+        for _, b in ipairs(brainrots) do
+            if IsInstantJoin(b.name) then
+                SetStatus("🚨 "..b.name.."! AUTO JOINING!", Color3.fromRGB(255,50,50))
+                task.wait(0.15)
+                InstantJoin(game.JobId, b.name)
+                return
+            end
+        end
+
+        -- Normal card scan
+        local foundAny = false
+        for _, b in ipairs(brainrots) do
+            if b.ms >= targetValue and not b.instantJoin then
+                local key = b.name..b.ms
+                if not addedKeys[key] then
+                    addedKeys[key] = true
+                    AddBrainrotCard({jobId=game.JobId,name=b.name,ms=b.ms,traits=b.traits,mutations=b.mutations,imageId=b.imageId})
+                    Notify("Found "..b.ms.."M/s "..b.name.."!")
+                    foundAny = true
+                end
+            end
+        end
+
+        if foundAny then
+            SetStatus("✅ Brainrots added! Still scanning...", Color3.fromRGB(0,200,100))
+        elseif #brainrots > 0 then
+            local best=brainrots[1]
+            for _,b in ipairs(brainrots) do if b.ms>best.ms then best=b end end
+            SetStatus("👁 Best: "..best.ms.."M/s — need "..targetValue.."M/s+", Color3.fromRGB(100,100,180))
+        else
+            SetStatus("👁 Scanning for brainrots...", Color3.fromRGB(60,150,100))
+        end
+
+        task.wait(2)
+    end
+end
+
+-- =====================
+--   START / STOP
+-- =====================
+
+StartBtn.MouseButton1Click:Connect(function()
+    if scanning then return end
+    local raw=InputBox.Text:match("^(%d+)$"); local num=raw and tonumber(raw)
+    if not num or num<1 or num>999 then
+        SetStatus("❌ Enter a number 1-999!", Color3.fromRGB(200,50,50)); return
+    end
+    targetValue=num; scanning=true
+    SetStatus("👁 Scanning for "..num.."M/s+ | Rare = instant join!", Color3.fromRGB(60,150,100))
+    Notify("Scanning for "..num.."M/s+!")
+    task.spawn(ScanLoop)
+end)
+
+StopBtn.MouseButton1Click:Connect(function()
+    if not scanning then return end
+    scanning=false
+    SetStatus("⬤  Stopped.", Color3.fromRGB(40,80,55))
+    Notify("Scanning stopped.")
+end)
+
+-- Auto-start ESP on load
+task.spawn(ESPLoop)
